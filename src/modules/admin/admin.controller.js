@@ -10,11 +10,12 @@ export const addAdmin = async (req, res) => {
         return res.status(400).json({ message: "Admin already exists" });
     }
     const hashedPassword = bcrypt.hashSync(password,parseInt(process.env.SALTROUND));
+    const token =jwt.sign({email},process.env.CONFIRM_EMAILTOKEN);
     const newAdmin = await adminModel.create({ email, password:hashedPassword });
     if (!newAdmin) {
         return res.status(500).json({ message: "Admin not created" });
     }
-    return res.status(201).json({ message: "Admin created", admin: newAdmin });
+    return res.status(201).json({ message: "Admin created", admin: newAdmin,token });
 
 }
 

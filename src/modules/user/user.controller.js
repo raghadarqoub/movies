@@ -1,6 +1,8 @@
 import bookingModel from '../../../db/models/booking.model.js';
 import userModel from './../../../db/models/user.model.js';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
 export const getUsers = async (req, res) => {
     const users = await userModel.find({});
     if (!users) {
@@ -10,12 +12,17 @@ export const getUsers = async (req, res) => {
 } 
 export const singUp = async (req, res) => {
     const { name, email, password } = req.body;
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser) {
+        return res.status(400).json({ message: "Email already exists" });
+    }
 const hashedPassword = bcrypt.hashSync(password,parseInt(process.env.SALTROUND));
 const user = await userModel.create({ name, email, password:hashedPassword });
+const token =jwt.sign({email},process.env.CONFIRM_EMAILTOKEN);
     if (!user) { 
         return res.status(500).json({ message: "user not created" });
     }
-    return res.status(200).json({ message: "user created", user });
+    return res.status(200).json({ message: "user created", user,token  });
 }
 export const login = async (req, res) => {
     const { email,password } = req.body;
